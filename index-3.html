@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Elite Eco Operations - CRM System</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(to-br, #f8fafc, #e2e8f0);
+            padding: 10px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        
+        /* LOGIN SCREEN */
+        #loginScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .login-card h1 {
+            color: #0f172a;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .login-card p {
+            color: #64748b;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1e293b;
+            font-size: 14px;
+        }
+        
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        input[type="number"],
+        input[type="tel"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+        }
+        
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #10b981;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            min-height: 46px;
+            margin-top: 16px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-secondary {
+            background: #64748b;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+        
+        .login-error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .login-success {
+            background: #dcfce7;
+            color: #166534;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+        }
+        
+        .header-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .user-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        
+        /* TABS */
+        .tabs {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 3px solid #e2e8f0;
+            overflow-x: auto;
+            padding: 0 20px;
+        }
+        
+        .tab {
+            flex: 1;
+            min-width: 120px;
+            padding: 14px 16px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            position: relative;
+        }
+        
+        .tab.active {
+            color: #10b981;
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #10b981;
+        }
+        
+        /* CONTENT */
+        .content {
+            padding: 20px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card h2 {
+            color: #0f172a;
+            margin-bottom: 16px;
+            font-size: 20px;
+        }
+        
+        .card h3 {
+            color: #1e293b;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* TABLES */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+        
+        th {
+            background: #e2e8f0;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #1e293b;
+            border-bottom: 2px solid #cbd5e1;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        tr:hover {
+            background: #f1f5f9;
+        }
+        
+        /* TRAFFIC LIGHTS */
+        .traffic-light {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .light-green {
+            background: #10b981;
+        }
+        
+        .light-yellow {
+            background: #f59e0b;
+        }
+        
+        .light-orange {
+            background: #f97316;
+        }
+        
+        .light-red {
+            background: #ef4444;
+        }
+        
+        .light-black {
+            background: #1e293b;
+        }
+        
+        /* STATUS BADGES */
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-enquiry {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .status-qualified {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-booked {
+            background: #ddd6fe;
+            color: #4c1d95;
+        }
+        
+        .status-visited {
+            background: #f3e8ff;
+            color: #6b21a8;
+        }
+        
+        .status-sold {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-not-sold {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        /* ALERTS */
+        .alert {
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border-left: 4px solid #10b981;
+        }
+        
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+        
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 16px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #0f172a;
+        }
+        
+        .modal-close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #64748b;
+        }
+        
+        /* SPINNER */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+        }
+        
+        .spinner {
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .metric-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #10b981;
+            margin: 10px 0;
+        }
+        
+        .metric-label {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 600;
+        }
+        
+        .metric-subtext {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen">
+        <div class="login-card">
+            <h1>Elite Eco</h1>
+            <p>CRM & Operations System</p>
+            
+            <div id="loginAlert" class="login-error"></div>
+            <div id="successAlert" class="login-success"></div>
+            
+            <div id="loginForm">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" placeholder="your@email.com">
+                </div>
+                
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••">
+                </div>
+                
+                <button class="btn btn-primary" onclick="handleLogin()">Sign In</button>
+                
+                <div style="margin-top: 20px; text-align: center; font-size: 14px; color: #64748b;">
+                    <p>No account? Contact your admin to create one.</p>
+                </div>
+            </div>
+            
+            <div id="loadingSpinner" style="display: none; text-align: center; margin-top: 20px;">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px; color: #64748b;">Signing in...</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MAIN APP -->
+    <div id="mainApp" style="display: none;">
+        <!-- HEADER -->
+        <div class="header">
+            <div>
+                <h1>🌱 Elite Eco Operations</h1>
+            </div>
+            <div class="header-right">
+                <div class="user-badge">
+                    <span id="userDisplay">User</span> (<span id="roleDisplay">user</span>)
+                </div>
+                <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
+            </div>
+        </div>
+        
+        <!-- TABS -->
+        <div class="tabs" id="tabsContainer">
+            <button class="tab active" onclick="switchTab(0)">📊 Dashboard</button>
+            <button class="tab" onclick="switchTab(1)">👥 Customers</button>
+            <button class="tab" onclick="switchTab(2)">📋 Tasks</button>
+            <button class="tab" onclick="switchTab(3)">💰 Commissions</button>
+            <button class="tab admin-only" style="display: none;" onclick="switchTab(4)">⚙️ Settings</button>
+            <button class="tab admin-only" style="display: none;" onclick="switchTab(5)">🔐 Users</button>
+        </div>
+        
+        <!-- CONTENT -->
+        <div class="content">
+            
+            <!-- TAB 0: DASHBOARD -->
+            <div class="tab-content active">
+                <h2 style="color: #10b981; margin-bottom: 20px;">📊 Dashboard</h2>
+                
+                <div id="dashboardMetrics" class="dashboard-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Total Customers</div>
+                        <div class="metric-value" id="metricTotalCustomers">0</div>
+                        <div class="metric-subtext">All time</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">Pipeline Value</div>
+                        <div class="metric-value" id="metricPipelineValue">£0</div>
+                        <div class="metric-subtext">Active leads</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">Conversion Rate</div>
+                        <div class="metric-value" id="metricConversionRate">0%</div>
+                        <div class="metric-subtext">This month</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">Your Customers</div>
+                        <div class="metric-value" id="metricMyCustomers">0</div>
+                        <div class="metric-subtext">Assigned to me</div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>📌 Recent Activity</h3>
+                    <div id="activityFeed" style="max-height: 400px; overflow-y: auto;">
+                        <p style="color: #94a3b8; text-align: center; padding: 20px;">No activity yet</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>⚠️ Tasks Needing Attention</h3>
+                    <div id="urgentTasks">
+                        <p style="color: #94a3b8; text-align: center; padding: 20px;">No urgent tasks</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TAB 1: CUSTOMERS -->
+            <div class="tab-content">
+                <h2 style="color: #10b981; margin-bottom: 20px;">👥 Customers</h2>
+                
+                <div class="card">
+                    <h3>➕ Create New Customer</h3>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Customer Name *</label>
+                            <input type="text" id="newCustomerName" placeholder="John Smith">
+                        </div>
+                        <div class="form-group">
+                            <label>Email *</label>
+                            <input type="email" id="newCustomerEmail" placeholder="john@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Mobile *</label>
+                            <input type="tel" id="newCustomerMobile" placeholder="07700 000000">
+                        </div>
+                        <div class="form-group">
+                            <label>Postcode *</label>
+                            <input type="text" id="newCustomerPostcode" placeholder="TW1 1AA">
+                        </div>
+                        <div class="form-group">
+                            <label>Property Type</label>
+                            <select id="newCustomerPropertyType">
+                                <option value="">Select...</option>
+                                <option value="house">House</option>
+                                <option value="flat">Flat</option>
+                                <option value="bungalow">Bungalow</option>
+                                <option value="commercial">Commercial</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Current Heating System</label>
+                            <select id="newCustomerHeatingSystem">
+                                <option value="">Select...</option>
+                                <option value="gas_boiler">Gas Boiler</option>
+                                <option value="oil_boiler">Oil Boiler</option>
+                                <option value="electric">Electric</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Address</label>
+                        <input type="text" id="newCustomerAddress" placeholder="123 Main Street">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Notes / Requirements</label>
+                        <textarea id="newCustomerNotes" placeholder="Any initial notes about the customer..." style="height: 100px;"></textarea>
+                    </div>
+                    
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Assign Sales Rep (Optional)</label>
+                            <select id="newCustomerRepSelect">
+                                <option value="">Admin will assign</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Installation Type</label>
+                            <select id="newCustomerInstallationType">
+                                <option value="">Select...</option>
+                                <option value="heat_pump">Heat Pump</option>
+                                <option value="solar">Solar</option>
+                                <option value="battery">Battery Storage</option>
+                                <option value="heat_pump_solar">Heat Pump + Solar</option>
+                                <option value="heat_pump_solar_battery">Heat Pump + Solar + Battery</option>
+                                <option value="mvhr">MVHR</option>
+                                <option value="green_build">Green Build</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="createNewCustomer()">➕ Create Customer</button>
+                </div>
+                
+                <div class="card">
+                    <h3>🔍 Customer List</h3>
+                    
+                    <div class="grid-2" style="margin-bottom: 16px;">
+                        <div class="form-group">
+                            <label>Search Customer</label>
+                            <input type="text" id="searchCustomer" placeholder="Name, email, phone..." oninput="filterCustomers()">
+                        </div>
+                        <div class="form-group">
+                            <label>Filter by Status</label>
+                            <select id="filterStatus" onchange="filterCustomers()">
+                                <option value="">All Statuses</option>
+                                <option value="enquiry">Initial Enquiry</option>
+                                <option value="qualified">Qualified</option>
+                                <option value="booked">Survey Booked</option>
+                                <option value="visited">Visited</option>
+                                <option value="sold">Sold</option>
+                                <option value="not_sold">Not Sold</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="customersList" style="overflow-x: auto;">
+                        <p style="color: #94a3b8; text-align: center; padding: 20px;">Loading customers...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TAB 2: TASKS -->
+            <div class="tab-content">
+                <h2 style="color: #10b981; margin-bottom: 20px;">📋 Tasks</h2>
+                
+                <div class="card">
+                    <h3>📌 My Tasks</h3>
+                    <div id="myTasksList">
+                        <p style="color: #94a3b8; text-align: center; padding: 20px;">Loading tasks...</p>
+                    </div>
+                </div>
+                
+                <div class="card admin-only" style="display: none;">
+                    <h3>⚙️ Create Task (Admin)</h3>
+                    
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Select Customer *</label>
+                            <select id="taskCustomerSelect">
+                                <option value="">Select customer...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Task Type *</label>
+                            <select id="taskTypeSelect">
+                                <option value="">Select...</option>
+                                <option value="welcome_call">Welcome Call</option>
+                                <option value="bus_grant">BUS Grant Application</option>
+                                <option value="book_heat_loss">Book Heat Loss Survey</option>
+                                <option value="complete_heat_loss">Complete Heat Loss Survey</option>
+                                <option value="generate_quote">Generate Quote</option>
+                                <option value="book_installation">Book Installation</option>
+                                <option value="complete_installation">Complete Installation</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Due Date *</label>
+                            <input type="date" id="taskDueDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Assign To Rep *</label>
+                            <select id="taskRepSelect">
+                                <option value="">Select rep...</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="taskDescription" placeholder="Task details..." style="height: 100px;"></textarea>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="createTask()">Create Task</button>
+                </div>
+            </div>
+            
+            <!-- TAB 3: COMMISSIONS -->
+            <div class="tab-content">
+                <h2 style="color: #10b981; margin-bottom: 20px;">💰 Commissions</h2>
+                
+                <div class="dashboard-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Total Earned</div>
+                        <div class="metric-value" id="commissionTotal">£0</div>
+                        <div class="metric-subtext">All time</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">Pending</div>
+                        <div class="metric-value" id="commissionPending">£0</div>
+                        <div class="metric-subtext">Not yet paid</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">This Month</div>
+                        <div class="metric-value" id="commissionMonth">£0</div>
+                        <div class="metric-subtext">Year to date</div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>💸 Commission Breakdown</h3>
+                    <div id="commissionList" style="overflow-x: auto;">
+                        <p style="color: #94a3b8; text-align: center; padding: 20px;">Loading commission data...</p>
+                    </div>
+                </div>
+                
+                <div class="card admin-only" style="display: none;">
+                    <h3>📊 All Commission Summary</h3>
+                    <div id="adminCommissionSummary">
+                        <p style="color: #94a3b8; text-align: center; padding: 20px;">Loading...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TAB 4: SETTINGS -->
+            <div class="tab-content admin-only" style="display: none;">
+                <h2 style="color: #10b981; margin-bottom: 20px;">⚙️ Settings</h2>
+                
+                <div class="card">
+                    <h3>🔐 Change Password</h3>
+                    
+                    <div class="form-group">
+                        <label>Current Password</label>
+                        <input type="password" id="currentPassword" placeholder="••••••••">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" id="newPassword" placeholder="••••••••">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Confirm New Password</label>
+                        <input type="password" id="confirmPassword" placeholder="••••••••">
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+                </div>
+                
+                <div class="card">
+                    <h3>📱 Rep Management</h3>
+                    <p style="color: #64748b; margin-bottom: 16px; font-size: 14px;">Add new sales reps to the system</p>
+                    
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Rep Name *</label>
+                            <input type="text" id="repName" placeholder="John Smith">
+                        </div>
+                        <div class="form-group">
+                            <label>Email *</label>
+                            <input type="email" id="repEmail" placeholder="john@eliteeco.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Mobile *</label>
+                            <input type="tel" id="repMobile" placeholder="07700 000000">
+                        </div>
+                        <div class="form-group">
+                            <label>Password (Temp) *</label>
+                            <input type="text" id="repPassword" placeholder="Generate temporary password">
+                        </div>
+                        <div class="form-group">
+                            <label>Region *</label>
+                            <select id="repRegion">
+                                <option value="">Select...</option>
+                                <option value="London">London</option>
+                                <option value="Surrey">Surrey</option>
+                                <option value="Essex">Essex</option>
+                                <option value="Kent">Kent</option>
+                                <option value="Hertfordshire">Hertfordshire</option>
+                                <option value="Sussex">Sussex</option>
+                                <option value="Berkshire">Berkshire</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Postcodes Served (comma-separated)</label>
+                            <input type="text" id="repPostcodes" placeholder="TW1, TW2, TW3">
+                        </div>
+                        <div class="form-group">
+                            <label>Max Travel Time (hours)</label>
+                            <input type="number" id="repMaxTravelTime" placeholder="2" min="0" step="0.5">
+                        </div>
+                        <div class="form-group">
+                            <label>Max Travel Miles</label>
+                            <input type="number" id="repMaxTravelMiles" placeholder="50" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Google Calendar ID (optional)</label>
+                            <input type="text" id="repGoogleCalendarId" placeholder="primary or calendar ID">
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="addNewRep()">➕ Add Rep</button>
+                </div>
+                
+                <div class="card">
+                    <h3>👥 Existing Reps</h3>
+                    <div id="repsList">
+                        <p style="color: #94a3b8; text-align: center; padding: 20px;">Loading reps...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TAB 5: USER MANAGEMENT -->
+            <div class="tab-content admin-only" style="display: none;">
+                <h2 style="color: #10b981; margin-bottom: 20px;">🔐 User Management</h2>
+                
+                <div class="card">
+                    <h3>➕ Create New User</h3>
+                    <p style="color: #64748b; margin-bottom: 16px; font-size: 14px;">Add new admin or staff members</p>
+                    
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Name *</label>
+                            <input type="text" id="newUserName" placeholder="John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label>Email *</label>
+                            <input type="email" id="newUserEmail" placeholder="john@eliteeco.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Password (Temporary) *</label>
+                            <input type="text" id="newUserPassword" placeholder="TempPassword123">
+                        </div>
+                        <div class="form-group">
+                            <label>Role *</label>
+                            <select id="newUserRole">
+                                <option value="owner">Owner</option>
+                                <option value="admin">Admin</option>
+                                <option value="rep">Sales Rep</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="createNewUser()">Create User</button>
+                </div>
+                
+                <div class="card">
+                    <h3>👥 All Users</h3>
+                    <div id="usersList">
+                        <p style="color: #94a3b8; text-align: center; padding: 20px;">Loading users...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- FIREBASE CONFIG AND SCRIPTS -->
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAoua0dEMz3aLTt-TXnYY2yj3DNdOZlVLU",
+            authDomain: "elite-eco.firebaseapp.com",
+            databaseURL: "https://elite-eco-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "elite-eco",
+            storageBucket: "elite-eco.firebasestorage.app",
+            messagingSenderId: "769972064014",
+            appId: "1:769972064014:web:1006f39d6df0fedc58d15f",
+            measurementId: "G-5XQQ7WS3GG"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+        
+        // Global variables
+        let currentUser = null;
+        let currentUserRole = null;
+        let currentUserData = null;
+    </script>
+    
+    <script src="app-firebase.js"></script>
+</body>
+</html>
